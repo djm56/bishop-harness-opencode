@@ -1,0 +1,37 @@
+# Ignore everything by default, then allowlist only the harness source files.
+# This makes the harness repo a clean portable package.
+
+*
+
+# Version control / packaging
+!.gitignore
+!.deployignore
+
+# Harness root files
+!README.md
+!AGENTS.md
+!SOUL.md
+!CREW-MANIFEST.md
+!opencode.json
+!install-harness.sh
+!INSTALL.md
+
+# OpenCode portable layer
+!.opencode/
+!.opencode/**
+
+# Runtime / local-only files (re-ignore after the allowlist above)
+.opencode/bishop-memory.conf
+.opencode/memory/state/.bishop-memory-cursor
+.opencode/memory/state/.bishop-memory-lock
+.opencode/memory/
+.opencode/about/
+.opencode/node_modules/
+.opencode/package.json
+.opencode/package-lock.json
+
+# macOS / editor noise
+.DS_Store
+*.swp
+*.swo
+*~

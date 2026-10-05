@@ -1,0 +1,40 @@
+{
+  "$schema": "https://opencode.ai/config.schema.json",
+  "model": "opencode-go/glm-5.2",
+  "small_model": "opencode-go/mimo-v2.5",
+  "default_agent": "bishop",
+  "plugin": [".opencode/mission-guard.ts"],
+  "instructions": ["./SOUL.md"],
+  "agent": {
+    "bishop": {
+      "mode": "primary",
+      "description": "Bishop commander. Plans, delegates, reviews, never writes code. Full mission lifecycle.",
+      "model": "opencode-go/glm-5.2",
+      "prompt": "{file:./.opencode/agents/bishop.md}"
+    },
+    "hicks": {
+      "mode": "subagent",
+      "description": "Junior developer. Takes every scoped coding step. Two fix rounds, then escalates.",
+      "model": "opencode-go/kimi-k2.7-code",
+      "prompt": "{file:./.opencode/agents/hicks.md}"
+    },
+    "apone": {
+      "mode": "subagent",
+      "description": "Code reviewer. Reads every diff for correctness, security, style, and craft. Advisory only.",
+      "model": "opencode-go-minimax/qwen3.7-plus",
+      "prompt": "{file:./.opencode/agents/apone.md}"
+    },
+    "vasquez": {
+      "mode": "subagent",
+      "description": "Senior developer. Escalation-only after two failed junior fix rounds.",
+      "model": "opencode-go/kimi-k2.6",
+      "prompt": "{file:./.opencode/agents/vasquez.md}"
+    },
+    "lambert": {
+      "mode": "subagent",
+      "description": "Documentation writer. Owns READMEs, docblocks, changelogs, and all state-file updates.",
+      "model": "opencode-go/hy3",
+      "prompt": "{file:./.opencode/agents/lambert.md}"
+    }
+  }
+}
