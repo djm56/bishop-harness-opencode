@@ -226,9 +226,10 @@ Who gets coding work. Applies while planning *and* while executing. Bishop enfor
 - Bishop escalates when **either** trigger fires, whichever comes first:
   - **Severity trigger** — the same CRITICAL finding is still open after two junior fix rounds, confirmed by two separate `@apone` reviews. Counted **per issue**.
   - **Round trigger** — `@hicks` has completed two fix rounds on this mission, whatever the severity of the findings. Counted **per mission**.
+- A fix round is a developer step answering `@apone` findings or `@ripley` QA findings, plus its paired `@apone` review. A step answering anything else does not increment the counter, but still takes a review immediately behind it under Rule 2.
 - Neither trigger outranks the other. Zero CRITICAL findings does not extend the round allowance.
-- Every developer fix brief states its round index — `fix round 1 of 2` or `fix round 2 of 2` — and the review step it answers. A sub-agent cannot count its own rounds across separate delegations, so a fix brief without the index is malformed. This applies to `@vasquez`'s own rounds exactly as it does to `@hicks`'s. The index goes to the developer only; a review brief carries no round count.
-- The escalation brief to `@vasquez` names which trigger fired, the two `@apone` review step numbers behind it, and the fix-round index reached. `@vasquez` refuses a call-in missing any of the three, so a brief without them stalls the escalation instead of starting it.
+- Every developer fix brief states its round index — `fix round 1 of 2` or `fix round 2 of 2` — and the step it answers — the `@apone` review or the `@ripley` QA step whose findings it addresses. A sub-agent cannot count its own rounds across separate delegations, so a fix brief without the index is malformed. This applies to `@vasquez`'s own rounds exactly as it does to `@hicks`'s. The index goes to the developer only; a review brief carries no round count.
+- The escalation brief to `@vasquez` names which trigger fired; the two step numbers behind it — for the severity trigger, the two `@apone` reviews confirming the CRITICAL; for the round trigger, one step number per fix round — the `@apone` review or `@ripley` QA step that round answered, repeated when both rounds answered the same step; and the fix-round index reached. `@vasquez` refuses a call-in missing any of the three, so a brief without them stalls the escalation instead of starting it.
 - Bishop never pre-plans that step. It appears during execution or not at all.
 
 ### Breaking Them
@@ -250,7 +251,7 @@ Any step where `@hicks` or `@vasquez` creates or changes files outside `.opencod
 
 1. `@apone` reviews the output. Always. There is no "too trivial to review".
 2. **CRITICAL** findings → fix goes to `@hicks` → `@apone` reviews again. That's a new numbered pair of steps.
-3. Junior gets **two fix rounds** (each round = one fix step plus one review step). Escalate to `@vasquez` when the same CRITICAL finding is still open after both, or when both rounds are used whatever the severity — whichever comes first. A junior step answering something other than a review does not increment the counter, but still takes a review immediately behind it.
+3. Junior gets **two fix rounds** (each round = one fix step plus one review step). Escalate to `@vasquez` when the same CRITICAL finding is still open after both, or when both rounds are used whatever the severity — whichever comes first. A junior step answering something other than an `@apone` review or a `@ripley` QA finding does not increment the counter, but still takes a review immediately behind it.
 4. `@vasquez` remediates → `@apone` reviews again. Senior gets **two fix rounds**.
 5. Still failing after two senior rounds → stop and escalate to the operator. Do not keep going.
 6. `@lambert` updates docs only where it's warranted: a public API changed, new files appeared, or something README-relevant moved.
@@ -260,6 +261,70 @@ Any step where `@hicks` or `@vasquez` creates or changes files outside `.opencod
 The review step is a numbered plan step like any other, and it gets its own state-sync afterwards.
 
 **Sync the findings before the fix round starts.** When a review turns up a CRITICAL and triggers a fix round, the review's *full* findings — the non-blocking WARNINGs and the reasoning behind the decisions, not just the CRITICAL — go into `FLIGHT-RECORDER.md` before the fix begins, not afterwards with the re-review. An interruption between the review and the fix otherwise takes the WARNINGs and the context with it, and the re-review has to rediscover them.
+
+---
+
+## QA Verification — Ripley's Terminal Phase
+
+This section is the canonical statement of how `@ripley` (QA verification) fits a mission. `.opencode/agents/ripley.md` covers her conduct, `.opencode/skills/visual-qa/SKILL.md` the procedure, and `.opencode/commands/qa.md` the standalone command. Where any of them disagrees with this section, this section wins.
+
+### Where She Sits
+
+- Ripley is a **terminal, opt-in phase**, not part of the per-step rotation or the code-quality pipeline. `@apone` follows every coding step automatically; Ripley follows none of them automatically.
+- She is never in a plan **by default**. When the operator asks for QA up front, her step may appear in the initial plan, after the final coding step and its `@apone` review; only non-coding steps, such as `@lambert` documentation, may follow it. In the initial plan, a Ripley step anywhere else makes the plan INVALID. The fix, review and re-verify steps her findings lead to are injected during execution, never planned.
+- Call her when the work produced a rendered surface — a page, a UI, an interactive feature — and a design reference or written acceptance criteria exists to verify against, or when the operator asks for QA.
+
+### The Pre-Flight Gate (Blocking)
+
+Bishop clears all five before delegating to her. Any one missing is a stop, and Bishop asks the operator, because Ripley cannot — asking the operator is filtered from sub-agents.
+
+Order matters: confirm the environment is non-production (item 4) and read the conf for the target's origin (item 1) before any request goes to the target — the reachability check included. Bishop's shell is outside the guard.
+
+1. **A reachable target URL** — staging, development, localhost, or a preview URL, with an origin the qa-guard plugin (`.opencode/qa-guard.ts`) allows. Read `.opencode/qa.conf` whatever the origin: with no conf, or one that doesn't set `QA_ALLOWED_ORIGINS`, only localhost (`localhost`, `127.0.0.1`, `[::1]`, any port) is allowed; a set `QA_ALLOWED_ORIGINS` replaces that default, a `QA_BLOCKED_ORIGINS` entry always wins, and an entry without a port matches only its scheme's default port (80 for `http`, 443 for `https`). Only the operator writes the conf, or authorises a step that does — Bishop cannot. Then, and only then, confirm it resolves now — a read-only request such as `curl -sI <url>` is enough.
+2. **A design reference or written acceptance criteria** — a design file or frame, a screenshot, a specification, or an explicit statement of intent. None supplied is a stop, never an inference.
+3. **The target is staged and ready** — built, content in place, forms wired to something safe, authentication arranged if needed. Ready now, not almost.
+4. **The environment is named and confirmed non-production**, and the target's origin is not in `QA_BLOCKED_ORIGINS` — that list is where production belongs.
+5. **Browser tooling is connected** — at least one Playwright-capable browser tool is available in this session, under a server name Ripley's `tools:` line grants. Bishop confirms it from his own tool list before delegating. With none connected, stop and tell the operator. A screenshot-only review happens only when the operator authorises it for that run, and Ripley's report then says plainly that no browser was driven.
+
+### Before The First Pass
+
+- **Link-check pre-run.** Ripley's browser can read the status of same-origin links and of the assets a page loaded, but not of links to other sites, and she holds no shell. So before her first pass, Bishop runs whatever link checker is installed, read-only, against the target — no cache or report files written, destructive URLs excluded — every pattern on the skip list in `.opencode/skills/visual-qa/technical-integrity.md`, and every `QA_BLOCKED_ORIGINS` entry, because the crawl runs from Bishop's shell, outside the guard. Bishop confirms the checker's cache and output defaults first — its `--help`, for example — and doesn't run it if he can't confirm it writes nothing; its output goes to the terminal, never to a file. Bishop pastes the output into Ripley's brief, the same way `@apone` receives diffs, and does not grade it; Ripley does. No particular checker is required. With none installed, the brief says so and Ripley reports cross-origin links as unchecked.
+- **Which browser.** Ripley uses an isolated Playwright automation browser. Operator-logged-in browsers and Chrome DevTools are not used.
+
+### Passes And Rounds
+
+- **First pass** — the initial verification. Its brief carries no round index and is labelled `QA pass — initial`.
+- **Re-verify** — after a DEFECT is fixed, or a DEVIATION the operator sent back is fixed, Ripley re-verifies. At most two: `QA re-verify 1 of 2` and `QA re-verify 2 of 2`. Every re-verify brief states its index and names the QA step it follows up. Ripley is stateless and cannot count her own passes, so a re-verify brief without its index is malformed and she refuses it.
+- **At most three Ripley passes per mission.** A DEFECT, or a DEVIATION the operator sent back, still open after `QA re-verify 2 of 2` ends the QA phase and goes to the operator.
+
+### Fixing What She Finds
+
+- A developer step answering Ripley's findings is a fix round under Rule 3, which says how it counts and what its brief carries.
+- Whoever holds the code fixes it — `@hicks`, or `@vasquez` once escalation has happened. If Rule 3's round trigger fires during QA fixes, escalate before the next fix.
+- Every QA fix step is followed immediately by `@apone` (Rule 2). Only then does Ripley re-verify.
+- Fix, review and re-verify steps are Bishop-injected steps: each gets its PROGRESS.md row before its brief goes out, under the injected-step rule.
+
+### Her Verdicts
+
+- Ripley grades in her own vocabulary — **DEFECT**, **DEVIATION**, **OBSERVATION**, **PASS** — and never uses CRITICAL, which belongs to `@apone` and drives the severity trigger. Her findings never count toward the severity trigger.
+- **DEFECT** — the intent is not met. An open DEFECT blocks the mission from closing as `done`: it is fixed and re-verified, or the operator decides — accepting the risk, recorded in the `QA Verdict` section of `DEBRIEF.md`, or closing the mission `failed`.
+- **DEVIATION** — it works, but does not match the design or stated intent. The operator accepts it or sends it back for a fix; Bishop never decides on the operator's behalf. Accepted deviations are recorded in the `QA Verdict` section of `DEBRIEF.md`.
+- **OBSERVATION** — non-blocking; recorded.
+- Items Ripley reports as unverified, or as needing human review, are listed and recorded in the `QA Verdict` section of `DEBRIEF.md`. They do not block.
+- Severity is hers alone. A QA brief may say what to look at, never what will be found — no proposed severity, no count of passes closed without a DEFECT, no "cosmetic" or "minor" before she has graded it. Bishop never overrides a grade.
+
+### Evidence
+
+Ripley keeps screenshots, console and network captures, and working notes under `.opencode/memory/workspace/qa/<run-id>/`. It is scratch like the rest of the workspace, and it is archived with every other file there at the next mission init.
+
+### Standalone `/qa`
+
+- Outside a mission, `/qa` only reports. Anything that needs fixing becomes a `/mission`. Ripley runs as a subagent there too; the guard depends on it.
+- While a mission is `in-progress`, QA work is an injected step in that mission — its PROGRESS.md row goes in before the work is delegated, as for any injected step.
+
+### What Is Not Enforced
+
+The qa-guard plugin (`.opencode/qa-guard.ts`) is the mechanical backstop, and it has gaps. When the running agent's identity is not visible to the plugin, Write/Edit confinement is doctrine-only and the guard checks browser-tool calls only. Unrecognised path-field names and nested objects pass through. Clicks, form submits, in-page fetch/XHR and `window.open` are never seen by the guard. These gaps are covered by `.opencode/agents/ripley.md`'s conduct rules, not by mechanism.
 
 ---
 
@@ -353,6 +418,7 @@ Once every step is done, in this exact order:
 1. [ ] Final state-sync (last step marked done, FLIGHT-RECORDER row appended with event=step-sync)
 2. [ ] Closing summary written for the operator
 3. [ ] **Tracker-and-reality check (BLOCKING):** diff every canonical tracker the mission touched — a project `progress.md`, a README status table, anything that claims what's done — against what's actually on disk. Drift either way is a blocking discovery: code present with no completed step, or a tracker claiming completion with the code missing. Sync the tracker before closing, or record the drift explicitly in `DEBRIEF.md` using the three kinds of not done from Terms above. Remediation you carry out here is a step: give it a PROGRESS.md row and a sync before continuing the close, then note the drift and its fix in `DEBRIEF.md`.
+   - **QA verdicts (BLOCKING, when Ripley ran):** no DEFECT is open unless the operator has decided on it, and every DEVIATION carries the operator's accept-or-fix decision. Each decision, every accepted DEFECT risk, and every item Ripley reported as unverified or needing human review is recorded in the `QA Verdict` section of `DEBRIEF.md`.
 4. [ ] **Learning pass run (BLOCKING — you cannot skip it):**
    - 4a. [ ] Bishop reads `.opencode/memory/workspace/findings-scratch.md` — the notes collected as the steps ran. That list *is* the input; the pass consolidates it rather than recalling it.
    - 4b. [ ] Bishop reviews its own observations — Bishop-level patterns, agent behaviour, delegation and skill gaps

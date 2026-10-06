@@ -54,7 +54,8 @@ Mission IDs are `mission-YYYYMMDD-NN` — see the Mission IDs section of `.openc
 | 2026-08-14 09:20 UTC | mission-20260814-01 | 1 | @lambert | step-sync | CONTEXT and PROGRESS initialized |
 | 2026-08-14 09:52 UTC | mission-20260814-01 | 2 | @hicks | step-sync | Search filter implemented |
 | 2026-08-14 10:15 UTC | mission-20260814-01 | 3 | @apone | step-sync | Approved, no critical findings |
-| 2026-08-14 10:31 UTC | mission-20260814-01 | — | @bishop | complete | All steps done, DEBRIEF written |
+| 2026-08-14 10:44 UTC | mission-20260814-01 | 4 | @ripley | step-sync | QA pass — initial: visual fidelity and responsive pass, one DEFECT on focus states |
+| 2026-08-14 10:51 UTC | mission-20260814-01 | — | @bishop | complete | All steps done, DEBRIEF written |
 ```
 
 ### FLIGHT-RECORDER Rules

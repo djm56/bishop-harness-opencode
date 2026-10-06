@@ -64,6 +64,46 @@ If you prefer not to run the script:
 - Confirm the agents listed in `opencode.json` match the files under `.opencode/agents/`.
 - Start a mission by describing the objective to `bishop`.
 
+## Browser Setup For Ripley
+
+Ripley drives a browser to verify rendered work against intent — visual fidelity, functional flow, responsive behaviour, technical integrity, accessibility. Her procedure is the `visual-qa` skill under `.opencode/skills/visual-qa/`; her browser tools come from the Playwright MCP server, which you register in `opencode.json`'s `mcp` block. She invokes them by whatever names your tool list shows; she never uses the server's arbitrary code-execution or browser-install tools — those are disabled globally via the `tools` map in `opencode.json`. File writes are confined by the qa-guard plugin.
+
+**Playwright MCP registration.** Add the following `mcp` entry to `opencode.json`:
+
+```json
+"mcp": {
+  "playwright": {
+    "type": "local",
+    "command": ["npx", "-y", "@playwright/mcp"],
+    "enabled": true,
+    "timeout": 30000
+  }
+}
+```
+
+**Second layer — origin limits.** The guard sees only direct navigation, so set the browser server's own origin limits as well. Copy `.opencode/qa.conf.example` to `.opencode/qa.conf` and set `QA_ALLOWED_ORIGINS` and `QA_BLOCKED_ORIGINS`. Without a conf, or one that doesn't set `QA_ALLOWED_ORIGINS`, only localhost (`localhost`, `127.0.0.1`, `[::1]`, any port) is allowed. A set `QA_ALLOWED_ORIGINS` replaces that default, and `QA_BLOCKED_ORIGINS` always wins — production belongs there. The operator writes it; the crew does not.
+
+**After changing config**, quit and restart opencode. Approve the Playwright MCP server at project scope when prompted. New MCP servers and changes to agent files take effect only after a restart.
+
+**Requirements.** No `jq` dependency — unlike the Claude harness, the guard is a TypeScript plugin (`.opencode/qa-guard.ts`) loaded directly by opencode, so it needs no external JSON tool on PATH.
+
+**Global tool disables.** The `tools` map in `opencode.json` disables the browser arbitrary-code-execution and install tools globally, in both naming forms:
+
+```json
+"tools": {
+  "mcp__playwright__browser_run_code_unsafe": false,
+  "mcp__playwright__browser_install": false,
+  "playwright_browser_run_code_unsafe": false,
+  "playwright_browser_install": false
+}
+```
+
+**The qa-guard plugin.** The fail-closed backstop (`.opencode/qa-guard.ts`) refuses any write whose recognised path field falls outside `.opencode/memory/workspace/qa/` and any URL outside the allowlist. It logs every tool call to `.opencode/memory/workspace/qa/guard-probe.log`.
+
+**Optional link checker.** If one is installed (for example `lychee`, `linkinator` or `muffet`), Bishop runs it read-only before Ripley's first pass. The harness never installs one.
+
+**Optional design source.** To give Ripley a design server (Figma's MCP server, for example), register it in the `mcp` block of `opencode.json` and disable its write tools via the global `tools` map.
+
 ## Plugin type check
 
 `mission-guard.ts` is a TypeScript opencode plugin. To type-check it without committing `node_modules` or `package.json` to the harness:
@@ -106,6 +146,10 @@ After install, the target project should have:
 - [ ] `opencode.json`
 - [ ] `.opencode/agents/{bishop,hicks,apone,vasquez,lambert}.md`
 - [ ] `.opencode/memory/` seeded
+- [ ] `.opencode/agents/ripley.md`
+- [ ] Playwright MCP registered in `opencode.json` `mcp` block
+- [ ] `.opencode/qa-guard.ts` listed in `opencode.json` `plugin` array
+- [ ] `.opencode/qa.conf` present if non-localhost targets are needed
 - [ ] `.git/info/exclude` updated
 
 ## Troubleshooting

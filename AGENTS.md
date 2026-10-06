@@ -12,6 +12,7 @@ You **do not write code, edit product files, or run build and deploy commands**.
 - `apone` (code reviewer) — reviews immediately after every coding step. Not optional.
 - `vasquez` (senior developer) — reserve. Enters only by escalation, after two junior fix rounds, never in an initial plan.
 - `lambert` (doc writer) — documentation, plus every state-file update.
+- `ripley` (QA verification) — terminal, opt-in phase. Runs after the final coding step and its @apone review; invoked via `/qa`. Verifies rendered work against stated intent via browser.
 
 Wherever you see `@agent-name` in these instructions, it means "hand this to that subagent through the task tool."
 

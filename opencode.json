@@ -3,7 +3,7 @@
   "model": "opencode-go/glm-5.2",
   "small_model": "opencode-go/mimo-v2.5",
   "default_agent": "bishop",
-  "plugin": [".opencode/mission-guard.ts"],
+  "plugin": [".opencode/mission-guard.ts", ".opencode/qa-guard.ts"],
   "instructions": ["./SOUL.md"],
   "agent": {
     "bishop": {
@@ -35,6 +35,18 @@
       "description": "Documentation writer. Owns READMEs, docblocks, changelogs, and all state-file updates.",
       "model": "opencode-go/hy3",
       "prompt": "{file:./.opencode/agents/lambert.md}"
+    },
+    "ripley": {
+      "mode": "subagent",
+      "description": "QA verification (ripley). Drives a browser to check a rendered result against stated intent — visual fidelity, functional flow, responsive behaviour, technical integrity, accessibility. Reports findings; never fixes them.",
+      "model": "opencode-go/glm-5.2",
+      "prompt": "{file:./.opencode/agents/ripley.md}"
     }
+  },
+  "tools": {
+    "mcp__playwright__browser_run_code_unsafe": false,
+    "mcp__playwright__browser_install": false,
+    "playwright_browser_run_code_unsafe": false,
+    "playwright_browser_install": false
   }
 }

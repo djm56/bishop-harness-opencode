@@ -15,12 +15,14 @@ A small, opinionated mission harness for [opencode](https://opencode.ai). One co
 | `apone` | Code reviewer | subagent | `opencode-go-minimax/qwen3.7-plus` |
 | `vasquez` | Senior developer | subagent | `opencode-go/kimi-k2.6` |
 | `lambert` | Documentation writer | subagent | `opencode-go/hy3` |
+| `ripley` | QA verification | subagent | `opencode-go/glm-5.2` |
 
 - **Bishop** plans, delegates, reviews and closes. Bishop does not edit product files or run deploy commands.
 - **Hicks** is the only coder in the initial plan. Every coding step goes to hicks.
 - **Apone** follows every coding step immediately and reviews the diff.
 - **Vasquez** is escalation-only. After two failed junior fix rounds, Bishop hands the mission to vasquez.
 - **Lambert** owns documentation and all state-file updates.
+- **Ripley** is QA verification. She drives a browser to verify rendered work against intent — visual fidelity, functional flow, responsive behaviour, technical integrity, accessibility. She reports findings; she never fixes. She runs as a terminal, opt-in phase after the final coding step and its review, invoked via `/qa`.
 
 The full wiring, delegation constraints, and memory layout are in [CREW-MANIFEST.md](./CREW-MANIFEST.md) and [AGENTS.md](./AGENTS.md).
 
@@ -55,6 +57,10 @@ The mission vocabulary is intentional:
 - `.opencode/memory/reference/DIRECTIVES.md` — binding, human-ratified rules.
 
 A mission is not marked complete until `DEBRIEF.md` contains the `Wrong Assumptions` and `Sub-Agent Mistakes` sections.
+
+### Running QA verification (`/qa`)
+
+For a rendered surface — a page, a UI, an interactive feature — Bishop clears a pre-flight gate, runs any installed link checker read-only against the target, then briefs **Ripley** to drive a browser and verify the work against your design or acceptance criteria. She reports findings as DEFECT / DEVIATION / OBSERVATION / PASS. Anything needing a fix becomes a `/mission` step, or an injected step in the active mission if one is running. `/qa` only reports — see [INSTALL.md](./INSTALL.md) for browser setup.
 
 ## Shared central memory (optional)
 

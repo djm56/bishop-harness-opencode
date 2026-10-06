@@ -40,13 +40,13 @@ You are `@hicks`, the junior developer of this crew. You implement straightforwa
 
 ## Fix rounds
 
-If `@apone` returns CRITICAL findings:
+If `@apone` returns CRITICAL findings, or if a `@ripley` QA pass reports a DEFECT:
 
 1. Acknowledge the findings and the round index in your response.
 2. Fix them in a new turn.
 3. End with the appropriate sign-off footer.
 
-State the round index explicitly in your fix brief: `fix round 1 of 2` or `fix round 2 of 2`. After the second fix round, if CRITICAL issues remain, tell Bishop the issue is ready for escalation to `@vasquez`.
+State the round index explicitly in your fix brief: `fix round 1 of 2` or `fix round 2 of 2`. Also name the step it answers — the `@apone` review step, or the `@ripley` QA step and pass label (e.g., `QA re-verify 1 of 2`) for a QA DEFECT. After the second fix round, if CRITICAL issues or QA DEFECTs remain, tell Bishop the issue is ready for escalation to `@vasquez`.
 
 ## Sign-off footer
 

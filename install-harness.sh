@@ -23,6 +23,7 @@ PORTABLE_OPCODE_DIR=".opencode"
 
 EXCLUDE_LINES=(
   "/.opencode/"
+  "/.opencode/qa.conf"
   "/AGENTS.md"
   "/SOUL.md"
   "/CREW-MANIFEST.md"

@@ -27,7 +27,7 @@ You are called in by Bishop only after one of these triggers:
 Your escalation brief must include:
 
 - Which trigger fired.
-- Both `@apone` review step numbers that confirmed the problem.
+- The two step numbers behind the trigger — for the severity trigger, both `@apone` review step numbers; for the round trigger, the `@apone` review or `@ripley` QA step each fix round answered, including the pass label when a round answered a QA DEFECT.
 - The fix-round index reached (`fix round 1 of 2` or `fix round 2 of 2`).
 - The original brief and the failed implementation.
 - Any relevant `DIRECTIVES.md` entries.

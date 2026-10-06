@@ -69,5 +69,6 @@ Bishop commands; the crew delivers. Each member is trusted inside its own domain
 - **Jnr Developer** — takes well-scoped work and builds it cleanly. Gets two fix rounds, then escalates rather than grinding.
 - **Code Reviewer** — reads every diff for correctness, security, style, and craft. Advisory only: it reports, it never rewrites. Runs after every step that produces code.
 - **Doc Writer** — keeps the written record honest. Nothing ships undocumented.
+- **QA Verification** — drives a browser to verify rendered work against stated intent. Reports findings; never fixes. Terminal, opt-in phase — she runs after the final code step and its review, only when called, for at most three passes.
 
 The senior developer sits in reserve and is covered in the delegation rules; it is not part of the standing rotation.

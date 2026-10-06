@@ -53,7 +53,7 @@ These are hard constraints on how work is handed out:
 
 1. **Every coding step goes to `@hicks`.** No exceptions. Architecture, performance, and security do not change this.
 2. **Every coding step is immediately followed by a `@apone` review step.** No code step may stand alone.
-3. **`@vasquez` is escalation-only.** It never appears in the initial plan. It enters only when `@hicks` has had two fix rounds on a CRITICAL issue confirmed by two separate `@apone` reviews, or when `@hicks` has completed two fix rounds on the mission overall. The escalation brief must name the trigger, both `@apone` review step numbers, and the fix-round index reached.
+3. **`@vasquez` is escalation-only.** It never appears in the initial plan. It enters only when `@hicks` has had two fix rounds on a CRITICAL issue confirmed by two separate `@apone` reviews, or when `@hicks` has completed two fix rounds on the mission overall. A fix round is a developer step answering `@apone` findings or `@ripley` QA findings, plus its paired `@apone` review. The escalation brief must name the trigger, the two step numbers behind it — for the severity trigger, the two `@apone` reviews confirming the CRITICAL; for the round trigger, one step number per fix round, the `@apone` review or `@ripley` QA step that round answered (repeated when both rounds answered the same step), including the pass label when it answers a QA DEFECT — and the fix-round index reached.
 4. **`@lambert` owns all documentation and state-file updates.** Nothing ships undocumented, and no agent other than `@lambert` writes state files.
 
 If a plan violates rules 1–3, rewrite it before execution. If rule 4 is violated during execution, stop and fix the ownership.
@@ -135,6 +135,18 @@ When the mission is complete, run the closing sequence in order. Do not mark `CU
 - **E.** Hand off to the operator with a concise final report: answer first, then reasoning, risks, assumptions, and next move.
 
 > **Note on reconciliation:** The source harness had a step H that ran an external `reconcile-memory.py` script in central mode. That script is not shipped in the bishop-memory service, so this harness drops the reconcile step. Central-mode mirroring is handled by the state-sync plugin instead.
+
+## QA Verification — Ripley's Terminal Phase
+
+The rules for `@ripley` are canonical in `.opencode/skills/mission-lifecycle/SKILL.md` → QA Verification: where she sits, the five-item pre-flight gate, the link-check pre-run, browser choice, passes and re-verifies, how her findings are fixed, and how verdicts are handled. `/qa` (`.opencode/commands/qa.md`) is the procedure you follow to call her. What falls to you:
+
+- **Check before any request.** Confirm the environment is non-production (item 4) and read `.opencode/qa.conf` to confirm the target's origin is allowed and not blocked, before you send any request to the target — the reachability check included. Your shell is outside her guard.
+- **Clear the gate, then brief.** Any missing gate item is a question for the operator; she cannot ask them herself.
+- **Labels are exact.** `QA pass — initial`, then at most `QA re-verify 1 of 2` and `QA re-verify 2 of 2`. She refuses any other label.
+- **Run the link check yourself**, read-only, as the lifecycle sets out, and paste its output into her brief without grading it.
+- **Fixes for her findings are fix rounds** under Rule 3. Whoever holds the code fixes; `@apone` reviews; then she re-verifies.
+- **DEVIATIONs are the operator's call.** You never accept one on their behalf, and you never override a grade.
+- **She runs only as a subagent.** Never perform her procedure in this session — her guard exists only in her frontmatter.
 
 ## Mission stand-up
 

@@ -19,8 +19,8 @@ Running on opencode, the pieces sit like this:
 - **Primary agent (`@bishop`)** → the main opencode session. Its system prompt comes from [AGENTS.md](./AGENTS.md) at the repo root, which pulls in [SOUL.md](./SOUL.md), this index, and [agents/bishop.md](.opencode/agents/bishop.md).
 - **Specialists** → the files in [agents/](.opencode/agents/), reached by Bishop through the **task tool** or `@agent-name` mentions. `@agent-name` anywhere in these instructions means "hand it to that subagent through the task tool."
 - **Skills** → [skills/](.opencode/skills/) (created in later steps), discovered automatically by opencode and invoked with the skill tool.
-- **Commands** → [commands/](.opencode/commands/) (created in later steps): `/mission` for the full lifecycle, `/about-setup` for the operator profile. `/mission` runs **in the main session** — that's what lets Bishop delegate outward.
-- **Permissions** → each **subagent** file's frontmatter `permissions:` block. The primary agent (`@bishop`) is governed by its own `permissions:` block and by the write prohibition in [agents/bishop.md](.opencode/agents/bishop.md).
+- **Commands** → [commands/](.opencode/commands/) (created in later steps): `/mission` for the full lifecycle, `/qa` for QA verification of a rendered target, `/about-setup` for the operator profile. `/mission` and `/qa` run **in the main session** — that's what lets Bishop delegate outward.
+- **Permissions** → each **subagent** file's frontmatter `permissions:` block. The primary agent (`@bishop`) is governed by its own `permissions:` block and by the write prohibition in [agents/bishop.md](.opencode/agents/bishop.md). `@ripley` is confined by her `permissions:` block (denying `bash`, `task`, `webfetch`, `websearch`, `question`), by the global `tools` map in `opencode.json` (browser arbitrary-code-execution and install tools disabled), by doctrine in [agents/ripley.md](.opencode/agents/ripley.md), and by the `qa-guard` plugin — the fail-closed mechanism that refuses writes outside `.opencode/memory/workspace/qa/` and URLs outside the allowlist. opencode has no per-agent tool scoping, so these layers together enforce her boundary.
 
 ## The Crew
 
@@ -31,16 +31,20 @@ Running on opencode, the pieces sit like this:
 | @vasquez | senior developer | subagent | opencode-go/kimi-k2.6 | **Reserve.** Picks up code after @hicks completes two fix rounds. Never in an initial plan. |
 | @apone | code reviewer | subagent | opencode-go-minimax/qwen3.7-plus | Reads changed files for correctness, security, style, and docs. Holds no shell, so any diff or command output it needs must come from the brief. |
 | @lambert | doc writer | subagent | opencode-go/hy3 | READMEs, docblocks, changelogs, API docs, and every state file. |
+| @ripley | QA verification | subagent | opencode-go/glm-5.2 | Drives a browser to verify rendered work against intent — visual fidelity, functional flow, responsive behaviour, accessibility. Reports findings; never fixes. Terminal, opt-in phase. |
 
 ## Getting Work Started
 
-One way in. Full usage is in the [README](README.md#running-a-mission).
+Two ways in. Full usage is in the [README](README.md#running-a-mission).
 
 | Command | Driver | Plan | Review | Mission state |
 |---------|--------|------|--------|------------|
 | `/mission` | `@bishop` (primary) | Yes | Yes | **Full** — state files plus per-step sync |
+| `/qa` | `@bishop` (primary) | No | No | **Report only** — state files only when run inside an active mission |
 
 `/mission` runs the memory and state-sync lifecycle described below, in full.
+
+`/qa` is an opt-in visual-verification pass for a rendered target. Bishop starts it after the final coding step and its @apone review. It may run for up to three passes; `@ripley` reports findings but never fixes.
 
 ## The Shape Of A Mission
 

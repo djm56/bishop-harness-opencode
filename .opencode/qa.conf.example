@@ -1,0 +1,30 @@
+# QA Configuration
+#
+# Copy this file to .opencode/qa.conf (never commit qa.conf itself).
+#
+# Grammar: Blank lines and lines starting with # are skipped. Every other line
+# splits on its first = into key and value, with no whitespace trimming and no
+# quote stripping. Unknown keys are ignored. The last occurrence of a key wins.
+# A final line without a trailing newline is still read. A value carrying a
+# carriage return or other control character (a file saved with CRLF line
+# endings, for one) makes its entries malformed.
+#
+# Origins: Each entry is shaped scheme://host[:port]. Scheme is http or https,
+# required. No path. Host is lower-cased before comparison and held to the same
+# rules as a URL host. A leading *. is allowed and matches any subdomain at any
+# depth (*.example.com matches a.example.com and a.b.example.com, but not
+# example.com itself). A port :* matches any port; an entry without a port
+# matches only the scheme's default port (80 for http, 443 for https).
+#
+# QA_ALLOWED_ORIGINS: space-separated list. If set, replaces the default
+# allowlist (http://localhost:*, https://localhost:*, http://127.0.0.1:*,
+# https://127.0.0.1:*, http://[::1]:*, https://[::1]:*). Set but empty allows
+# only about:blank. Malformed entries deny every Ripley call until fixed.
+#
+# QA_BLOCKED_ORIGINS: space-separated list. A blocked match always wins, even
+# if the origin is on the allowlist. Malformed entries deny every Ripley call
+# until fixed. Production URLs belong here.
+#
+# Examples (commented out):
+#QA_ALLOWED_ORIGINS=http://localhost:* http://127.0.0.1:* https://staging.example.com
+#QA_BLOCKED_ORIGINS=https://example.com https://www.example.com

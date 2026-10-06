@@ -1,0 +1,12 @@
+node_modules
+package.json
+package-lock.json
+bun.lock
+
+# Per-repo QA allowlist (never commit; qa.conf.example is the template)
+qa.conf
+
+# QA evidence: ignore contents, keep folder marker and README
+memory/workspace/qa/*
+!memory/workspace/qa/.gitkeep
+!memory/workspace/qa/README.md
