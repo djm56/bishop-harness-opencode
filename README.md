@@ -78,5 +78,5 @@ Re-run `install-harness.sh` in the target project. By default the script will no
 ## Troubleshooting
 
 - **opencode does not see the agents.** Check that `opencode.json` is in the project root and that the `agent` block points at files that exist under `.opencode/agents/`.
-- **Memory folder is missing.** The installer seeds it from `.opencode/memory.zip`. If you delete `.opencode/memory/`, extract the zip again before starting work.
+- **Memory folder is missing.** The installer seeds it from `.opencode/memory.zip`. If you delete `.opencode/memory/`, re-run the installer, or extract the zip into `.opencode/` (not `.opencode/memory/` — the zip has a top-level `memory/` folder) before starting work. See INSTALL.md → Troubleshooting for the nested-memory case.
 - **Central mode is not connecting.** Confirm `memoryd` is running (`curl http://127.0.0.1:8787/healthz`), that `.opencode/bishop-memory.conf` sets `BISHOP_MEMORY_MODE=central`, and that you ran `.opencode/connect-bishop-memory.sh` and restarted opencode.

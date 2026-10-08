@@ -27,14 +27,24 @@ What the script does:
 2. Copies the portable layer into the target:
    - `AGENTS.md`, `SOUL.md`, `CREW-MANIFEST.md`, `opencode.json`
    - `.opencode/` (agents, commands, skills, templates, plugins, `memory.zip`, `.gitignore`)
-3. Seeds `.opencode/memory/` from `.opencode/memory.zip` when present (the zip is built and shipped in a later packaging step). Skipped if memory already exists; use `--force` to re-seed.
-4. Appends the harness paths to `.git/info/exclude` so runtime files stay out of the product repo.
+3. Seeds `.opencode/memory/` from `.opencode/memory.zip` when present. The zip contains a top-level `memory/` folder; the installer extracts it to a temp directory, strips that folder, and places the contents so the result is:
+   ```text
+   .opencode/memory/state/{CURRENT-MISSION,FLIGHT-RECORDER,MISSION-ARCHIVE}.md
+   .opencode/memory/missions/
+   .opencode/memory/workspace/
+   .opencode/memory/findings/
+   .opencode/memory/reference/DIRECTIVES.md
+   ```
+   - Memory counts as seeded only when `.opencode/memory/state/CURRENT-MISSION.md` exists. A bare or wrongly nested `.opencode/memory/` is topped up with the missing seed files; existing files are never overwritten.
+   - If an earlier install left `.opencode/memory/memory/`, the installer moves its contents up one level (`mv -n`, no clobber), reports every move, and removes the empty nested folder. It refuses, before copying anything, when both the nested and the top-level copies hold state files.
+   - `--force` re-seeds: it backs up `.opencode/memory/` and then overwrites existing files with the seed, state files included.
+4. Appends the harness paths to `.git/info/exclude` so runtime files stay out of the product repo. When the target is not a git repository, this step is skipped with a one-line notice.
 5. Reports what was copied and what to do next.
 
 ## Flags
 
-- `--dry-run` — show what would be copied, but change nothing.
-- `--force` — overwrite existing harness files and re-seed memory even if they already exist.
+- `--dry-run` — show what would be copied, but change nothing. Memory seeding and repair report each exact destination path they would create or move.
+- `--force` — overwrite existing harness files and re-seed memory even if they already exist. Re-seeding replaces existing state files after backing up `.opencode/memory/`.
 - `--help` — show usage.
 
 ## Manual install
@@ -47,7 +57,7 @@ If you prefer not to run the script:
    - `CREW-MANIFEST.md`
    - `opencode.json`
 2. Copy the portable `.opencode/` tree into the target project.
-3. Extract `.opencode/memory.zip` into `.opencode/memory/`.
+3. Extract `.opencode/memory.zip` into `.opencode/` (not `.opencode/memory/`) — the zip already contains a top-level `memory/` folder. Confirm `.opencode/memory/state/CURRENT-MISSION.md` exists.
 4. Add the following to `.git/info/exclude` in the target project:
    ```text
    /.opencode/
@@ -60,9 +70,21 @@ If you prefer not to run the script:
 
 ## After installing
 
-- Check that opencode loads the root `AGENTS.md` and `SOUL.md` as instructions.
-- Confirm the agents listed in `opencode.json` match the files under `.opencode/agents/`.
-- Start a mission by describing the objective to `bishop`.
+Work through these in order. Steps 2 and 3 are optional; the rest are not.
+
+1. **Configure the user-level providers** `opencode-go` and `opencode-go-minimax` before first launch. See [Provider configuration](#provider-configuration).
+2. **Optional — central memory.**
+   1. Confirm the bishop-memory daemon is healthy: `http://127.0.0.1:8787/healthz` responds.
+   2. Copy `.opencode/bishop-memory.conf.example` to `.opencode/bishop-memory.conf` and set `BISHOP_MEMORY_MODE=central`, a unique `BISHOP_HARNESS`, and `BISHOP_MEMORY_HOME`.
+   3. Run `.opencode/connect-bishop-memory.sh --dry-run`, then run it for real. The first real run writes `opencode.json.bak`; it is safe to re-run.
+3. **Optional — QA.** Add the Playwright `mcp` entry next to `bishop-memory` in the same `mcp` block of `opencode.json` (see [Browser Setup For Ripley](#browser-setup-for-ripley)). `.opencode/qa.conf` is needed only for non-localhost targets — no conf means localhost only. A link checker is optional (for example `brew install lychee`).
+4. **Restart opencode once**, after all config changes, and approve each project-scope MCP server when prompted (`bishop-memory`, `playwright`).
+5. **Verify.**
+   - `bishop` is the default agent.
+   - All six agents load: `bishop`, `hicks`, `apone`, `vasquez`, `lambert`, `ripley`.
+   - In central mode, a new mission ID comes from `mission_allocate`.
+
+Then start a mission by describing the objective to `bishop`.
 
 ## Browser Setup For Ripley
 
@@ -132,7 +154,7 @@ On a fresh machine, configure both providers in your user-level opencode config 
 ## Central memory setup (optional)
 
 1. Install the `bishop-memory` service and confirm `http://127.0.0.1:8787/healthz` responds.
-2. Copy `.opencode/bishop-memory.conf.example` to `.opencode/bishop-memory.conf` and set `BISHOP_MEMORY_MODE=central` and a unique `BISHOP_HARNESS` name.
+2. Copy `.opencode/bishop-memory.conf.example` to `.opencode/bishop-memory.conf` and set `BISHOP_MEMORY_MODE=central`, a unique `BISHOP_HARNESS` name, and `BISHOP_MEMORY_HOME`.
 3. Run `.opencode/connect-bishop-memory.sh` to write the `mcp` block into `opencode.json`.
 4. Restart opencode and approve the project-scope MCP server.
 
@@ -146,15 +168,21 @@ After install, the target project should have:
 - [ ] `opencode.json`
 - [ ] `.opencode/agents/{bishop,hicks,apone,vasquez,lambert}.md`
 - [ ] `.opencode/memory/` seeded
+- [ ] `.opencode/memory/state/CURRENT-MISSION.md` exists (not nested under `.opencode/memory/memory/`)
 - [ ] `.opencode/agents/ripley.md`
 - [ ] Playwright MCP registered in `opencode.json` `mcp` block
 - [ ] `.opencode/qa-guard.ts` listed in `opencode.json` `plugin` array
 - [ ] `.opencode/qa.conf` present if non-localhost targets are needed
-- [ ] `.git/info/exclude` updated
+- [ ] `.git/info/exclude` updated (git targets only)
+- [ ] bishop-memory MCP registered in `opencode.json` (central mode only)
 
 ## Troubleshooting
 
 - **Existing `opencode.json` conflict.** The installer backs up the existing file and stops. Re-run with `--force` to replace it, or merge the `agent` and `instructions` blocks manually.
-- **No `rsync`.** The installer falls back to `cp -R` automatically.
+- **No `rsync`.** The installer falls back to `cp -R` automatically, still skipping the runtime layer (`memory/`, `about/`, `bishop-memory.conf`).
 - **Memory seed fails.** Ensure `.opencode/memory.zip` exists in the harness checkout. If it does not, the seed step is skipped; create `.opencode/memory/` by hand from the templates until the zip is available.
+- **Memory nested as `.opencode/memory/memory/`.**
+  - *Symptom:* the crew can't find `CURRENT-MISSION.md`, `FLIGHT-RECORDER.md`, `DIRECTIVES.md` and the rest; they sit under `.opencode/memory/memory/state/` and so on.
+  - *Cause:* earlier installers extracted `memory.zip` into `.opencode/memory/`, but the zip already has a top-level `memory/` folder.
+  - *Fix:* re-run the fixed installer — it moves the contents up one level without overwriting anything and reports each move. Or move the five folders (`state`, `missions`, `workspace`, `findings`, `reference`) up one level by hand and delete the empty `.opencode/memory/memory/`. If both levels hold state files, the installer refuses; decide which copy is live and archive the other first.
 - **Git still shows harness files as untracked.** That is expected. The installer uses `.git/info/exclude` so the harness files remain local-only.

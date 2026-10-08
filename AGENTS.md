@@ -46,7 +46,7 @@ Run `/about-setup` to create or refresh the profile.
 
 ## Memory
 
-Durable state lives on disk in `.opencode/memory/` — mission files, state files, findings, and the crew's working documents. The folder structure is seeded from `.opencode/memory.zip`; if `.opencode/memory/` ever goes missing, extract the zip to rebuild it before starting any work. All state-sync rules come from the mission-lifecycle skill.
+Durable state lives on disk in `.opencode/memory/` — mission files, state files, findings, and the crew's working documents. The folder structure is seeded from `.opencode/memory.zip`; if `.opencode/memory/` ever goes missing, rebuild it before starting any work by re-running the installer or extracting the zip into `.opencode/` (the zip carries a top-level `memory/` folder; extracting into `.opencode/memory/` nests it). Rebuilt correctly, `.opencode/memory/state/CURRENT-MISSION.md` exists. All state-sync rules come from the mission-lifecycle skill.
 
 What lives where, and why it matters that they don't mix:
 
