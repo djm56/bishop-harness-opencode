@@ -743,11 +743,13 @@ export const missionGuard: Plugin = async (ctx: PluginInput) => {
           return
         }
 
+        // A freshly seeded journal has no data rows, and stand-up points
+        // CURRENT-MISSION.md at the new mission before its mission-start row is
+        // appended. That is the same brand-new-mission window the cross-mission
+        // check below tolerates, so stay silent rather than warn on every tool
+        // call of a first mission's stand-up.
         const dataRows = getFlightRecorderDataRows(flightContent)
         if (dataRows.length === 0) {
-          console.warn(
-            `[mission-guard] State-continuity warning: FLIGHT-RECORDER.md has no data rows for active mission ${currentMissionID}.`
-          )
           return
         }
 
