@@ -134,6 +134,23 @@ function parseMissionID(content: string): string | null {
 }
 
 /**
+ * Extract the Status value from CURRENT-MISSION.md content.
+ *
+ * Matches "- Status: <value>" field-list shape (and tolerates table shape).
+ * Returns one of not-started | in-progress | blocked | complete, or null.
+ *
+ * @param content - Markdown text to parse.
+ * @returns The status value or `null` if none found.
+ */
+function parseMissionStatus(content: string): string | null {
+  if (typeof content !== "string") return null
+  const match = content.match(
+    /Status\s*[|:]\s*(not-started|in-progress|blocked|complete)\b/i
+  )
+  return match ? match[1].toLowerCase() : null
+}
+
+/**
  * Extract the Mission ID column from a FLIGHT-RECORDER.md data row.
  *
  * Schema: | Timestamp | Mission ID | Step | Agent | Event | Note |
@@ -702,6 +719,19 @@ export const missionGuard: Plugin = async (ctx: PluginInput) => {
 
         const currentMissionID = parseMissionID(currentContent)
         if (!currentMissionID) {
+          return
+        }
+
+        // A completed mission is not an active mission. The pointer file
+        // deliberately still names the last mission after close (see
+        // .opencode/templates/state/STATE-FILE-TEMPLATE.md), so continuity
+        // advisories — and the central-mode mirror below — step aside until a
+        // new mission replaces the pointer. "not-started" is NOT silenced: the
+        // staleness check already tolerates brand-new missions (it only warns
+        // once the mission has a row of its own), and silencing it would also
+        // skip the mirror for stand-up rows.
+        const currentMissionStatus = parseMissionStatus(currentContent)
+        if (currentMissionStatus === "complete") {
           return
         }
 
