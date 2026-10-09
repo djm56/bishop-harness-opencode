@@ -65,6 +65,7 @@ Proposed changes to an agent prompt or a skill file.
 ### [Date] — [Agent/Skill/Tool Target]
 **Suggestion**: [concrete change]
 **Rationale**: [why this improves outcomes]
+**Mission**: [mission-YYYYMMDD-NN]
 **Status**: proposed
 **Approver**: —
 **Date approved**: —

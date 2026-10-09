@@ -131,10 +131,11 @@ When the mission is complete, run the closing sequence in order. Do not mark `CU
   - `Sub-Agent Mistakes` — at least one row; use `none` if genuinely none.
 - **B.** Validate that the mission outputs match the acceptance criteria in `BRIEF.md`.
 - **C.** Mark the mission outcome in `MISSION-ARCHIVE.md` and move the `CURRENT-MISSION.md` pointer to complete.
-- **D.** Run the learning pass: consolidate `findings-scratch.md` entries into `FINDINGS.md` or `PATTERNS.md` proposals. Only `@lambert` writes these files.
-- **E.** Hand off to the operator with a concise final report: answer first, then reasoning, risks, assumptions, and next move.
+- **D.** Run the learning pass: consolidate `findings-scratch.md` entries into `FINDINGS.md` or `PATTERNS.md` proposals. Only `@lambert` writes these files. Every `FINDINGS.md` entry carries `**Mission**: mission-[id]`.
+- **E.** Central mode only: have `@lambert` reconcile bishop-memory against the Markdown by running `.opencode/lib/reconcile-bishop-memory.sh` from the project root. It reads the conf itself; in standalone mode it exits 0 and does nothing. This is how findings, patterns, service records and mission steps reach the service, linked to this mission. A failure is reported in the final report, not treated as a blocker — it is idempotent, so running it again recovers.
+- **F.** Hand off to the operator with a concise final report: answer first, then reasoning, risks, assumptions, and next move.
 
-> **Note on reconciliation:** The source harness had a step H that ran an external `reconcile-memory.py` script in central mode. That script is not shipped in the bishop-memory service, so this harness drops the reconcile step. Central-mode mirroring is handled by the state-sync plugin instead.
+> **Note on reconciliation:** the state-sync plugin mirrors flight-recorder events only. Everything else reaches bishop-memory through the step E reconcile, which follows the mission-lifecycle skill's Closing Checklist step 10.
 
 ## QA Verification — Ripley's Terminal Phase
 

@@ -22,6 +22,7 @@ This is the **findings ledger**: specific, observed findings, one entry per obse
 ### [YYYY-MM-DD] — [Agent/Skill/Tool Target]
 **Suggestion**: [concrete, actionable change to an agent prompt, skill, or tool]
 **Rationale**: [why this improves future mission outcomes]
+**Mission**: [mission-YYYYMMDD-NN — the mission this was observed on]
 **Status**: proposed
 **Approver**: —
 **Date approved**: —
@@ -33,6 +34,7 @@ Appended at the bottom of the file, below the marker and below every existing en
 
 - The target is a named agent (`@hicks`), a skill (`mission-lifecycle`), or a tool concept. Not a vague area.
 - The suggestion has to be implementable without anyone coming back to ask what it means.
+- **Mission** is the ID of the mission the finding was observed on. In central mode the reconcile step at mission close reads it to link the finding to that mission in bishop-memory; an entry without it reaches triage but never shows on the mission.
 - Status is `proposed` on creation. Never anything else.
 - **Approver** and **Date approved** belong to the human. No agent fills them in — they're recorded when a human moves status to `approved`.
 - An entry may pick up amendment lines after `**Date approved**` — things like `**Disposition (mission-…):**` or `**Fold-forward (…):**`. So an entry ends at the next `### [` heading or at the end of the file, not at a fixed final field. Don't assume the last field you recognise is the end of the entry — and when appending, find the true bottom of the file rather than the first field you take for a terminator.

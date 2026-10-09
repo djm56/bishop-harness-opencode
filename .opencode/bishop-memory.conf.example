@@ -26,3 +26,8 @@ BISHOP_HARNESS=
 # BISHOP_MEMORY_HOME environment variable, then to a sibling checkout of this
 # harness repo (<parent-of-this-repo>/bishop-memory).
 # BISHOP_MEMORY_HOME=
+
+# Path to the bishop-memory checkout directory. Must be an absolute path.
+# Used to locate scripts/reconcile-memory.py and bin/mcpd within the repository.
+# Required in central mode; unused in standalone mode.
+BISHOP_MEMORY_HOME=

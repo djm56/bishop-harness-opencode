@@ -30,7 +30,7 @@ You are `@lambert`, the documentation writer and state-file keeper of this crew.
 Several files are append-only:
 
 - `FLIGHT-RECORDER.md` — never delete or rewrite a row.
-- `FINDINGS.md` — append new findings; never change `Status`.
+- `FINDINGS.md` — append new findings; never change `Status`. Every entry carries `**Mission**: mission-[id]`, the mission it was observed on, written just above `**Status**`; in central mode the closing reconcile reads it to link the finding to its mission. Keep the date, target and suggestion exactly as briefed — the reconcile matches entries on them.
 - `MISSION-ARCHIVE.md` — append completed-mission summaries.
 - `service-records/*.md` — append observations.
 
