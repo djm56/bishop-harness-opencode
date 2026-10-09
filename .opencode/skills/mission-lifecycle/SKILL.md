@@ -66,9 +66,8 @@ Which route applies is decided by `.opencode/bishop-memory.conf` at the project 
 - **`BISHOP_MEMORY_MODE=central`** — the ID is allocated, not derived. Call the `mission_allocate` MCP tool with the mission `title`. It returns the ID and registers the mission in one atomic operation, which is what makes duplication impossible: the row holding the ID is created in the same transaction that computed it. The owning harness comes from the project-scope MCP registration, so it does not need passing.
 - **If bishop-memory is unreachable in central mode, stop and tell the operator. Never fall back to local derivation.** State the reason plainly: local derivation is right for one harness and wrong for several — two harnesses both compute the same `NN` — and a reused ID in an append-only journal is not recoverable. A blocked mission start is recoverable; a duplicate ID in an append-only journal is not.
 
-**Central mode carries two obligations.** The ID is allocated at mission start via `mission_allocate`. The reconciler runs at mission close. Between them, `.opencode/mission-guard.ts` mirrors journal rows and mission steps continuously, so the journal and steps stay current — the reconciler at mission close acts as a backstop for all structured tables (mission steps, findings, patterns, service records) and the full reconcile ensures everything is in sync with the Markdown truth.
+**Central mode carries two obligations.** The ID is allocated at mission start via `mission_allocate`. The reconciler runs at mission close. Between them, `.opencode/mission-guard.ts` mirrors journal rows continuously. Everything else — mission steps, findings, patterns, service records — reaches the service through the reconciler at mission close (step 10 of the Closing Checklist below), which brings every structured table into line with the Markdown truth.
 
-> **Note on reconciliation:** the standalone reconcile-memory.py script referenced in the source harness was never shipped in the bishop-memory service repo. The port therefore omits it; central-mode reconciliation is handled by the service's own backstop and the continuous mirror.
 
 ---
 
@@ -423,7 +422,7 @@ Once every step is done, in this exact order:
    - 4a. [ ] Bishop reads `.opencode/memory/workspace/findings-scratch.md` — the notes collected as the steps ran. That list *is* the input; the pass consolidates it rather than recalling it.
    - 4b. [ ] Bishop reviews its own observations — Bishop-level patterns, agent behaviour, delegation and skill gaps
    - 4c. [ ] Anything concrete? Delegate the writes to `@lambert` with named file targets and entry content, per `.opencode/templates/findings/FINDINGS-TEMPLATE.md`, all applicable files in one delegation
-   - 4d. [ ] `@lambert` appends to `FINDINGS.md`, `PATTERNS.md`, and/or `service-records/[name].md` as applicable
+   - 4d. [ ] `@lambert` appends to `FINDINGS.md`, `PATTERNS.md`, and/or `service-records/[name].md` as applicable. Every `FINDINGS.md` entry carries `**Mission**: mission-[id]` — in central mode that line is what links the finding to its mission in bishop-memory
    - Nothing found? The pass is complete. No delegation, no writes.
 5. [ ] `missions/mission-[id]/DEBRIEF.md` written by `@lambert` from `.opencode/templates/mission/DEBRIEF-TEMPLATE.md`
    - Mandatory sections: wrong assumptions, and per-agent mistakes with corrective actions
@@ -436,7 +435,7 @@ Once every step is done, in this exact order:
 9. [ ] Every logical step confirmed to have sync evidence before the mission closes
 10. [ ] Reconcile bishop-memory with the Markdown (central mode only)
     - Skip when `.opencode/bishop-memory.conf` is absent or `BISHOP_MEMORY_MODE` is not `central`
-    - The service's own backstop reconciles structured tables against the Markdown truth.
+    - Run `.opencode/lib/reconcile-bishop-memory.sh` from the project root. It reads `BISHOP_MEMORY_HOME`, `BISHOP_MEMORY_URL` and `BISHOP_HARNESS` from the conf and always passes `--harness`, so every finding, pattern and service record is attributed to this harness
     - Runs after step 8 so the mission's outcome is present in MISSION-ARCHIVE.md
     - Idempotent and safe to re-run; a non-zero exit means the derived copy is stale, not that the close failed
 
