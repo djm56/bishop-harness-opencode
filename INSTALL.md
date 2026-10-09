@@ -45,7 +45,32 @@ What the script does:
 
 - `--dry-run` — show what would be copied, but change nothing. Memory seeding and repair report each exact destination path they would create or move.
 - `--force` — overwrite existing harness files and re-seed memory even if they already exist. Re-seeding replaces existing state files after backing up `.opencode/memory/`.
+- `--update` — refresh an existing install with the current harness files. See [Updating an existing install](#updating-an-existing-install). Cannot be combined with `--force`.
 - `--help` — show usage.
+
+## Updating an existing install
+
+To bring a project that already runs the harness up to date, without touching its memory or local config:
+
+```bash
+./install-harness.sh --update --dry-run /path/to/target-project   # report only
+./install-harness.sh --update /path/to/target-project
+```
+
+What it covers:
+
+- `AGENTS.md`, `SOUL.md`, `CREW-MANIFEST.md`, and every harness file under `.opencode/` (agents, commands, skills, templates, lib, plugins, `memory.zip`, examples).
+- It never reads or writes `.opencode/memory/`, `.opencode/about/`, `bishop-memory.conf`, `qa.conf`, `node_modules/`, or `package*.json`.
+
+How it decides:
+
+- A file missing from the target is added (`NEW`).
+- A file is replaced (`CHANGED`) when its size differs. When the sizes match, the bytes are compared too, so an edit that keeps the length is still caught.
+- Each replaced file is first copied to `.bishop-backups/update-<timestamp>/`, keeping its relative path. In git targets that folder is added to `.git/info/exclude`.
+- `opencode.json` is never written, because it holds the target's own provider and MCP config. Instead the harness-owned keys (`agent`, `plugin`, `instructions`, `tools`, `default_agent`) are compared, and any difference is listed under `REVIEW` for you to merge by hand.
+- Files that exist only in the target, such as a skill removed from the harness, are listed under `EXTRA` and left in place.
+
+The run ends with a short colour-coded summary (`NEW`, `CHANGED`, `SAME`, `REVIEW`, `EXTRA`). Set `NO_COLOR=1` to turn the colour off. With `--dry-run` nothing is written, and the summary says where the backups would go.
 
 ## Manual install
 

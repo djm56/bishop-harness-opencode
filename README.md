@@ -73,7 +73,9 @@ See [AGENTS.md](./AGENTS.md) for the full bishop-memory doctrine and the intende
 
 ## Updating the harness
 
-Re-run `install-harness.sh` in the target project. By default the script will not overwrite an existing harness unless you pass `--force`. Use `--dry-run` to preview changes.
+Run `install-harness.sh --update /path/to/target-project` to refresh the harness files in a project that already has the harness. Only files that differ are replaced, each one backed up first. Memory, `about/`, local confs and `opencode.json` are left alone. Add `--dry-run` to see the report without changing anything. See [INSTALL.md](./INSTALL.md#updating-an-existing-install).
+
+A plain re-run of `install-harness.sh` will not overwrite an existing harness unless you pass `--force`, which also re-seeds memory.
 
 ## Troubleshooting
 
