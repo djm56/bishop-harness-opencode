@@ -9,6 +9,7 @@
 
 # Harness root files
 !README.md
+!LICENSE
 !AGENTS.md
 !SOUL.md
 !CREW-MANIFEST.md
